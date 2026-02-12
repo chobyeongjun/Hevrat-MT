@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hevrat MT — 함께 지어져 가네</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf7f2;--s:#fff;--s2:#f0ebe3;--bd:#e0d8cc;--t:#2c2420;--td:#8a7e72;--a:#c0392b;--a2:#e8c87a;--dk:#1a1512}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--t);line-height:1.7;overflow-x:hidden}
+.hero{background:linear-gradient(160deg,#1a1512 0%,#2c1f18 40%,#3d2c1e 100%);color:#faf7f2;padding:60px 20px 48px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(232,200,122,0.1) 0%,transparent 60%)}
+.hero-label{display:inline-block;background:rgba(232,200,122,0.15);border:1px solid rgba(232,200,122,0.3);color:var(--a2);font-size:11px;font-weight:700;padding:5px 18px;border-radius:20px;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;position:relative}
+.hero h1{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;position:relative;line-height:1.3}
+.hero-verse{font-size:13px;color:rgba(250,247,242,0.5);position:relative;margin-top:10px;font-style:italic}
+.hero-info{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:20px;position:relative}
+.hero-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);padding:8px 16px;border-radius:10px;font-size:13px;color:rgba(250,247,242,0.8)}
+.container{max-width:700px;margin:0 auto;padding:20px 16px}
+.sec{background:var(--s);border:1px solid var(--bd);border-radius:16px;margin-bottom:20px;overflow:hidden}
+.sec-head{padding:18px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.05);touch-action:manipulation;user-select:none;min-height:56px}
+.sec-head:active{background:var(--s2)}
+.sec-icon{font-size:24px;flex-shrink:0}
+.sec-title{font-size:16px;font-weight:700;flex:1}
+.sec-arrow{color:var(--td);font-size:14px;transition:transform 0.3s;flex-shrink:0}
+.sec.open .sec-arrow{transform:rotate(180deg)}
+.sec-body{display:none;padding:0 16px 20px;border-top:1px solid var(--bd)}
+.sec.open .sec-body{display:block;padding-top:16px}
+.tl-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid rgba(224,216,204,0.5)}
+.tl-item:last-child{border-bottom:none}
+.tl-time{font-size:12px;font-weight:700;color:var(--a);width:70px;flex-shrink:0;padding-top:2px}
+.tl-content{flex:1}
+.tl-title{font-size:14px;font-weight:600}
+.tl-desc{font-size:12px;color:var(--td);margin-top:2px}
+.rule-box{background:linear-gradient(135deg,#fdf2f2,#fbe4e4);border:2px solid #e6a5a0;border-radius:14px;padding:20px 16px;margin:14px 0;text-align:center}
+.rule-box-title{font-size:17px;font-weight:900;color:var(--a);margin-bottom:12px}
+.rule-steps{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.rule-step{background:#fff;border:2px solid #e6a5a0;border-radius:12px;padding:14px 18px;text-align:center;min-width:110px;flex:1;max-width:160px}
+.rule-step-num{font-size:28px;font-weight:900;color:var(--a);line-height:1}
+.rule-step-label{font-size:13px;font-weight:700;margin-top:4px}
+.rule-step-desc{font-size:11px;color:var(--td);margin-top:2px}
+.rule-plus{font-size:24px;font-weight:300;color:#cba5a0}
+.rule-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(224,216,204,0.5)}
+.rule-row:last-child{border-bottom:none}
+.rule-num{width:26px;height:26px;border-radius:50%;background:var(--dk);color:var(--a2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.rule-text{font-size:13px;line-height:1.8}
+.rule-text strong{color:var(--a)}
+.ticket-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.ticket-card{background:var(--s2);border-radius:12px;padding:14px;text-align:center;border:1px solid var(--bd)}
+.ticket-emoji{font-size:24px}
+.ticket-label{font-size:12px;font-weight:600;margin-top:4px}
+.ticket-val{font-size:11px;color:var(--a);font-weight:700;margin-top:2px;display:inline-block;background:rgba(192,57,43,0.08);padding:2px 10px;border-radius:10px}
+.info-box{background:var(--s2);border-radius:12px;padding:16px;margin:14px 0;border-left:3px solid var(--a2)}
+.info-box h4{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--dk)}
+.info-box p{font-size:13px;color:var(--td);line-height:1.8}
+.alert{border-radius:12px;padding:14px 16px;margin:14px 0;font-size:13px;line-height:1.8}
+.alert-warn{background:#fef9e7;border:1px solid #f9e79f;color:#7d6608}
+.alert-info{background:#eaf2f8;border:1px solid #aed6f1;color:#1a5276}
+.alert-green{background:#e8f8f5;border:1px solid #a3e4d7;color:#0e6655}
+.map-wrap{margin:14px 0;border-radius:14px;overflow:hidden;border:2px solid var(--a)}
+.map-wrap img{width:100%;height:auto;display:block}
+.map-cap{background:var(--dk);color:var(--a2);padding:10px 14px;font-size:12px;font-weight:600;text-align:center}
+.transport{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.transport-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border-radius:10px;border:1px solid var(--bd)}
+.transport-icon{font-size:22px;flex-shrink:0}
+.transport-text{font-size:13px;line-height:1.6}
+.transport-text strong{display:block;font-size:14px;color:var(--dk)}
+.prep-list{margin:14px 0}
+.prep-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(224,216,204,0.4);font-size:13.5px}
+.prep-item:last-child{border-bottom:none}
+.prep-icon{font-size:18px;flex-shrink:0}
+.vote-btn{display:block;width:100%;padding:18px;background:linear-gradient(135deg,var(--a),#e74c3c);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;font-family:inherit;text-decoration:none;text-align:center;touch-action:manipulation;box-shadow:0 4px 20px rgba(192,57,43,0.3);margin:14px 0}
+.footer{text-align:center;padding:32px 16px;color:var(--td);font-size:12px}
+.footer-verse{font-style:italic;margin-bottom:8px}
+@media(min-width:641px){.hero{padding:72px 24px 56px}.hero h1{font-size:40px}.container{padding:28px 20px}.sec-head{padding:20px}.ticket-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:380px){.hero h1{font-size:24px}.hero{padding:44px 16px 36px}.hero-chip{font-size:12px;padding:6px 12px}.rule-step{min-width:90px;padding:10px 12px}}
+</style>
+</head>
+<body>
+<div class="hero">
+<div class="hero-label">Hevrat Worship Team</div>
+<h1>🎵 함께 지어져 가네</h1>
+<div class="hero-verse">"너희도 산 돌같이 신령한 집으로 세워지고" — 벧전 2:5</div>
+<div class="hero-info">
+<div class="hero-chip">📅 날짜 추후 공지</div>
+<div class="hero-chip">⏰ 13:00 ~ 20:00</div>
+<div class="hero-chip">📍 사당역 · 성진교회</div>
+</div></div>
+<div class="container">
+
+<div class="sec open">
+<div class="sec-head" role="button"><span class="sec-icon">📋</span><span class="sec-title">일정표</span><span class="sec-arrow">▼</span></div>
+<div class="sec-body">
+<div class="tl-item"><div class="tl-time">13:00</div><div class="tl-content"><div class="tl-title">🤝 집결 & 오프닝</div><div class="tl-desc">성진교회 집합. 인사 & MT 소개</div></div></div>
+<div class="tl-item"><div class="tl-time">13:20</div><div class="tl-content"><div class="tl-title">🏃 추격전: 흩어진 제자들을 찾아서!</div><div class="tl-desc">사당역 일대에서 펼쳐지는 야외 추격 게임</div></div></div>
+<div class="tl-item"><div class="tl-time">14:00</div><div class="tl-content"><div class="tl-title">🔥 팀 빌딩</div><div class="tl-desc">팀 이름 짓기 & 팀 구호 발표</div></div></div>
+<div class="tl-item"><div class="tl-time">14:15</div><div class="tl-content"><div class="tl-title">🧠 TMI 퀴즈 (Kahoot!)</div><div class="tl-desc">멤버들의 숨겨진 TMI! 누구 이야기일까?</div></div></div>
+<div class="tl-item"><div class="tl-time">14:45</div><div class="tl-content"><div class="tl-title">🎵 찬양 전주 퀴즈</div><div class="tl-desc">전주만 듣고 곡 맞추기!</div></div></div>
+<div class="tl-item"><div class="tl-time">15:05</div><div class="tl-content"><div class="tl-title">🗣️ TTS 찬양 퀴즈 ⭐</div><div class="tl-desc">AI가 읽어주는 가사. 멜로디 없이 맞춰라!</div></div></div>
+<div class="tl-item"><div class="tl-time">15:20</div><div class="tl-content"><div class="tl-title">🎨 AI 그림 + 몸으로 말해요</div><div class="tl-desc">TMI 기반 AI 초상화 & 찬양 ver 몸으로 말해요</div></div></div>
+<div class="tl-item"><div class="tl-time">15:35</div><div class="tl-content"><div class="tl-title">🎉 가사 빈칸 + 추첨 시상식</div><div class="tl-desc">마지막 게임 & 행운의 주인공은?!</div></div></div>
+<div class="tl-item"><div class="tl-time">16:00</div><div class="tl-content"><div class="tl-title">☕ 자유시간</div><div class="tl-desc">보드게임, 카페, 산책 등 자유롭게!</div></div></div>
+<div class="tl-item"><div class="tl-time">18:00</div><div class="tl-content"><div class="tl-title">🍕 저녁식사</div><div class="tl-desc">투표로 정한 메뉴!</div></div></div>
+<div class="tl-item"><div class="tl-time">19:30</div><div class="tl-content"><div class="tl-title">🙏 마무리</div><div class="tl-desc">주제곡 합창 · 팀 규칙 · 소그룹 기도</div></div></div>
+</div></div>
+
+<div class="sec open">
+<div class="sec-head" role="button"><span class="sec-icon">🏃</span><span class="sec-title">추격전: 흩어진 제자들을 찾아서!</span><span class="sec-arrow">▼</span></div>
+<div class="sec-body">
+<p style="font-size:13.5px;line-height:1.8;margin-bottom:14px">예수님의 제자들이 사당역 일대에 흩어져 있습니다! 추격팀은 GPS를 활용해 제자를 찾고, 이름을 맞춰 포획하세요.</p>
+<div class="rule-box"><div class="rule-box-title">포획 방법</div>
+<div class="rule-steps"><div class="rule-step"><div class="rule-step-num">①</div><div class="rule-step-label">터치!</div><div class="rule-step-desc">제자를 직접 터치</div></div><div class="rule-plus">+</div><div class="rule-step"><div class="rule-step-num">②</div><div class="rule-step-label">이름!</div><div class="rule-step-desc">성경 인물 이름 맞추기</div></div></div></div>
+<div class="rule-row"><div class="rule-num">1</div><div class="rule-text"><strong>역할:</strong> 제자(숨는 사람) vs 추격팀 2팀</div></div>
+<div class="rule-row"><div class="rule-num">2</div><div class="rule-text"><strong>구역:</strong> 사당역 500m 반경 (경계선 밖 = 자동 포획!)</div></div>
+<div class="rule-row"><div class="rule-num">3</div><div class="rule-text"><strong>GPS:</strong> 전원 카카오톡 실시간 위치 공유</div></div>
+<div class="rule-row"><div class="rule-num">4</div><div class="rule-text"><strong>이름 틀리면?</strong> 제자에게 <strong>10초 도주 기회!</strong></div></div>
+<div class="rule-row"><div class="rule-num">5</div><div class="rule-text"><strong>종료:</strong> 교회에 <strong>6명 이상 모이면 자동 종료!</strong></div></div>
+<div class="alert alert-warn"><strong>⚠️ 안전:</strong> 뛰지 않기(빠른 걷기까지), 차도 금지, 건물 진입 금지, 추우면 즉시 귀환!</div>
+<div class="alert alert-info">💡 <strong>제자 캐릭터 카드는 당일에 공개됩니다!</strong> 힌트를 잘 기억하세요!</div>
+</div></div>
+
+<div class="sec">
+<div class="sec-head" role="button"><span class="sec-icon">🎫</span><span class="sec-title">추첨권 시스템</span><span class="sec-arrow">▼</span></div>
+<div class="sec-body">
+<p style="font-size:13.5px;line-height:1.8;margin-bottom:14px">하루 동안 추첨권을 모으세요! 많을수록 당첨 확률 UP! 🎉</p>
+<div class="ticket-grid">
+<div class="ticket-card"><div class="ticket-emoji">🏃</div><div class="ticket-label">추격전 포획</div><div class="ticket-val">팀 전원 1장</div></div>
+<div class="ticket-card"><div class="ticket-emoji">💡</div><div class="ticket-label">이름 첫 시도</div><div class="ticket-val">+1장</div></div>
+<div class="ticket-card"><div class="ticket-emoji">🏆</div><div class="ticket-label">최후의 생존자</div><div class="ticket-val">3장!</div></div>
+<div class="ticket-card"><div class="ticket-emoji">📣</div><div class="ticket-label">팀 구호</div><div class="ticket-val">팀 전원 2장</div></div>
+<div class="ticket-card"><div class="ticket-emoji">🧠</div><div class="ticket-label">퀴즈 정답</div><div class="ticket-val">1장</div></div>
+<div class="ticket-card"><div class="ticket-emoji">🎭</div><div class="ticket-label">몸으로 말해요</div><div class="ticket-val">팀 전원 1장</div></div>
+<div class="ticket-card"><div class="ticket-emoji">🎵</div><div class="ticket-label">가사 빈칸</div><div class="ticket-val">팀 1~3장</div></div>
+<div class="ticket-card"><div class="ticket-emoji">⭐</div><div class="ticket-label">MC 보너스</div><div class="ticket-val">1장</div></div>
+</div>
+<div class="alert alert-green" style="text-align:center"><strong>🎁 시상식:</strong> 추첨으로 1등 / 2등 / 3등 — 상품 있어요!</div>
+</div></div>
+
+<div class="sec">
+<div class="sec-head" role="button"><span class="sec-icon">🎒</span><span class="sec-title">준비물 & 복장</span><span class="sec-arrow">▼</span></div>
+<div class="sec-body">
+<div class="info-box"><h4>👗 복장</h4><p>야외 추격전이 있으므로 <strong>움직이기 편한 옷 + 운동화</strong> 필수! 2월이라 따뜻하게! 🧥</p></div>
+<div class="prep-list">
+<div class="prep-item"><span class="prep-icon">📱</span> 스마트폰 (GPS 위치 공유용) — 충전 풀로!</div>
+<div class="prep-item"><span class="prep-icon">🔋</span> 보조배터리 (추격전 중 배터리 소모 큼)</div>
+<div class="prep-item"><span class="prep-icon">🧤</span> 핫팩 / 장갑 / 목도리 (야외 활동 대비)</div>
+<div class="prep-item"><span class="prep-icon">💰</span> 저녁 식비 (약 8,000~15,000원)</div>
+<div class="prep-item"><span class="prep-icon">😄</span> 즐길 마음!</div>
+</div></div></div>
+
+<div class="sec">
+<div class="sec-head" role="button"><span class="sec-icon">📍</span><span class="sec-title">오시는 길</span><span class="sec-arrow">▼</span></div>
+<div class="sec-body">
+<div class="info-box"><h4>🏠 집합 장소: 성진교회</h4><p>서울특별시 동작구 사당동 · 사당역 근처<br><strong>13:00까지</strong> 성진교회로 와주세요!</p></div>
+<div class="map-wrap"><img src="map.jpg" alt="활동 구역 지도"><div class="map-cap">🔴 빨간 경계선 = 추격전 활동 구역 · A = 성진교회</div></div>
+<div class="transport">
+<div class="transport-item"><div class="transport-icon">🚇</div><div class="transport-text"><strong>지하철</strong>2호선 / 4호선 사당역 하차, 도보 약 5~8분</div></div>
+<div class="transport-item"><div class="transport-icon">🚌</div><div class="transport-text"><strong>버스</strong>사당역 정류장 하차 후 도보 이동</div></div>
+</div></div></div>
+
+<div class="sec">
+<div class="sec-head" role="button"><span class="sec-icon">🍕</span><span class="sec-title">저녁 메뉴 투표</span><span class="sec-arrow">▼</span></div>
+<div class="sec-body">
+<p style="font-size:13.5px;line-height:1.8;margin-bottom:14px">저녁 메뉴를 함께 정해요! 🗳️</p>
+<a class="vote-btn" href="#" target="_blank">🗳️ 저녁 메뉴 투표하기</a>
+<p style="font-size:12px;color:var(--td);text-align:center;margin-top:8px">투표 링크는 추후 업데이트됩니다</p>
+</div></div>
+
+</div>
+<div class="footer"><div class="footer-verse">"한 사람 한 사람 주님께 나아가, 함께 지어져 가네"</div>Hevrat Worship Team 🎵</div>
+<script>document.addEventListener('click',function(e){var h=e.target.closest('.sec-head');if(h)h.closest('.sec').classList.toggle('open')});</script>
+</body>
+</html>
