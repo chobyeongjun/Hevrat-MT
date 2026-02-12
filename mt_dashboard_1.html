@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hevrat MT — 진행 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: #333;
+  --text: #e8e4df;
+  --text-dim: #8a8580;
+  --accent: #e8c87a;
+  --accent-dim: #b89a4a;
+  --red: #e85d5d;
+  --green: #5de88a;
+  --blue: #5da8e8;
+  --purple: #a87de8;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; }
+body {
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--bg); color:var(--text);
+  line-height:1.7; min-height:100dvh;
+  -webkit-text-size-adjust:100%; overflow-x:hidden;
+}
+
+/* TOP BAR */
+.topbar {
+  position:sticky; top:0; z-index:100;
+  background:rgba(15,15,15,0.95);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.logo { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--accent); white-space:nowrap; }
+.theme-badge { font-size:11px; color:var(--text-dim); background:var(--surface2); padding:4px 10px; border-radius:20px; border:1px solid var(--border); white-space:nowrap; }
+.topbar-right { display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; gap:1px; }
+.global-date { font-size:10px; color:var(--text-dim); white-space:nowrap; }
+.global-timer { font-size:15px; color:var(--accent); font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+/* NAV */
+.nav-tabs {
+  display:flex; padding:0 8px; background:var(--surface);
+  border-bottom:1px solid var(--border);
+  overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+.nav-tabs::-webkit-scrollbar { display:none; }
+.nav-tab {
+  padding:14px 14px; font-size:13px; font-weight:500; color:var(--text-dim);
+  cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap;
+  min-height:48px; display:flex; align-items:center;
+  user-select:none; -webkit-user-select:none; transition:all 0.2s;
+}
+.nav-tab:active { color:var(--text); }
+.nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+/* MAIN */
+.main { max-width:900px; margin:0 auto; padding:16px; }
+.section { display:none; }
+.section.active { display:block; }
+
+/* CARDS */
+.program-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; margin-bottom:16px; overflow:hidden; }
+.program-header {
+  padding:16px; cursor:pointer; display:flex; align-items:center;
+  justify-content:space-between; gap:10px; min-height:60px;
+  user-select:none; -webkit-user-select:none;
+}
+.program-header:active { background:var(--surface2); }
+.program-header-left { display:flex; align-items:center; gap:12px; min-width:0; flex:1; }
+.program-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.program-title { font-size:15px; font-weight:700; }
+.program-subtitle { font-size:11px; color:var(--text-dim); margin-top:2px; }
+.program-time-badge { font-size:11px; color:var(--accent); background:rgba(232,200,122,0.1); border:1px solid rgba(232,200,122,0.2); padding:3px 10px; border-radius:20px; font-weight:600; white-space:nowrap; flex-shrink:0; }
+.expand-icon { color:var(--text-dim); font-size:14px; transition:transform 0.3s; flex-shrink:0; }
+.program-card.expanded .expand-icon { transform:rotate(180deg); }
+.program-body { display:none; padding:0 16px 16px; border-top:1px solid var(--border); }
+.program-card.expanded .program-body { display:block; padding-top:16px; }
+
+/* MC BLOCKS */
+.mc-block { background:var(--surface2); border-radius:12px; padding:16px; margin:10px 0; border-left:3px solid var(--accent); }
+.mc-block.copyable { cursor:pointer; position:relative; }
+.mc-block.copyable::after { content:'📋 복사'; position:absolute; top:8px; right:10px; font-size:10px; color:var(--text-dim); opacity:0.6; }
+.mc-block.copyable:active { background:var(--border); }
+.mc-label { font-size:10px; font-weight:700; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
+.mc-text { font-size:14px; line-height:1.8; }
+.mc-text em { color:var(--accent); font-style:normal; font-weight:600; }
+.stage-dir { font-size:12px; color:var(--purple); font-weight:500; margin:12px 0; padding:10px 12px; background:rgba(168,125,232,0.08); border-radius:8px; border:1px solid rgba(168,125,232,0.15); line-height:1.6; }
+
+/* TIMER */
+.timer-widget { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:20px 16px; text-align:center; margin:14px 0; }
+.timer-display { font-size:52px; font-weight:900; font-variant-numeric:tabular-nums; color:var(--accent); letter-spacing:3px; margin:6px 0; line-height:1.2; }
+.timer-display.warning { color:var(--red); animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.timer-label { font-size:12px; color:var(--text-dim); }
+.timer-buttons { display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+.btn { padding:14px 22px; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; min-height:48px; touch-action:manipulation; transition:transform 0.1s; }
+.btn:active { transform:scale(0.95); }
+.btn-primary { background:var(--accent); color:var(--bg); }
+.btn-secondary { background:var(--surface); color:var(--text); border:1px solid var(--border); }
+.btn-danger { background:rgba(232,93,93,0.15); color:var(--red); border:1px solid rgba(232,93,93,0.3); }
+
+/* COUNTER */
+.counter-widget { display:flex; align-items:center; justify-content:center; gap:20px; margin:14px 0; padding:20px 16px; background:var(--surface2); border-radius:14px; border:1px solid var(--border); }
+.counter-value { font-size:44px; font-weight:900; color:var(--accent); width:60px; text-align:center; font-variant-numeric:tabular-nums; }
+.counter-target { font-size:44px; font-weight:300; color:var(--text-dim); }
+.counter-btn { width:56px; height:56px; border-radius:50%; border:2px solid var(--border); background:var(--surface); color:var(--text); font-size:26px; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+.counter-btn:active { border-color:var(--accent); color:var(--accent); transform:scale(0.92); }
+.counter-label { font-size:12px; color:var(--text-dim); text-align:center; margin-top:6px; }
+
+/* CHECKLIST */
+.checklist { margin:14px 0; }
+.check-item { display:flex; align-items:flex-start; gap:12px; padding:14px 0; border-bottom:1px solid rgba(51,51,51,0.5); cursor:pointer; user-select:none; -webkit-user-select:none; min-height:48px; touch-action:manipulation; }
+.check-item:last-child { border-bottom:none; }
+.check-item:active { opacity:0.7; }
+.check-box { width:28px; height:28px; border:2px solid var(--border); border-radius:7px; flex-shrink:0; display:flex; align-items:center; justify-content:center; margin-top:1px; font-size:15px; transition:all 0.15s; }
+.check-item.done .check-box { background:var(--accent); border-color:var(--accent); color:var(--bg); }
+.check-item.done .check-text { text-decoration:line-through; color:var(--text-dim); }
+.check-text { font-size:13.5px; line-height:1.6; }
+
+/* RAFFLE */
+.raffle-info { background:linear-gradient(135deg,rgba(232,200,122,0.08),rgba(232,200,122,0.03)); border:1px solid rgba(232,200,122,0.2); border-radius:12px; padding:14px 16px; margin:12px 0; }
+.raffle-title { font-size:13px; font-weight:700; color:var(--accent); margin-bottom:8px; }
+.raffle-item { font-size:12.5px; color:var(--text); padding:5px 0; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+.raffle-badge { font-size:10px; background:var(--accent); color:var(--bg); padding:2px 8px; border-radius:10px; font-weight:600; flex-shrink:0; }
+
+/* NOTES */
+.note-box { background:rgba(93,168,232,0.08); border:1px solid rgba(93,168,232,0.2); border-radius:10px; padding:14px 16px; margin:12px 0; font-size:13px; color:var(--blue); line-height:1.7; }
+.warning-note { background:rgba(232,93,93,0.08); border-color:rgba(232,93,93,0.2); color:var(--red); }
+.success-note { background:rgba(93,232,138,0.08); border-color:rgba(93,232,138,0.2); color:var(--green); }
+
+/* UTILITIES */
+.divider { height:1px; background:var(--border); margin:18px 0; }
+h3.sub-heading { font-size:14px; font-weight:700; margin:18px 0 10px; display:flex; align-items:center; gap:6px; }
+p.body-text { font-size:13px; color:var(--text-dim); line-height:1.8; margin:8px 0; }
+
+/* SECRET LINK */
+.secret-link-area { margin-top:20px; }
+.secret-btn { display:block; width:100%; padding:16px; background:linear-gradient(135deg,var(--accent),var(--accent-dim)); color:var(--bg); border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; text-decoration:none; text-align:center; touch-action:manipulation; box-shadow:0 4px 20px rgba(232,200,122,0.3); }
+.secret-btn:active { transform:scale(0.98); }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--accent); color:var(--bg); padding:10px 24px; border-radius:10px; font-size:14px; font-weight:600; z-index:999; animation:toastAnim 1.5s forwards; pointer-events:none; }
+@keyframes toastAnim { 0%{opacity:1;transform:translateX(-50%) translateY(0)} 70%{opacity:1} 100%{opacity:0;transform:translateX(-50%) translateY(-10px)} }
+
+/* DESKTOP */
+@media (min-width:641px) {
+  .topbar{padding:12px 24px} .logo{font-size:20px} .main{padding:24px}
+  .program-header{padding:20px 24px} .program-body{padding:0 24px 24px}
+  .program-card.expanded .program-body{padding-top:20px} .timer-display{font-size:64px;letter-spacing:4px}
+  .global-timer{font-size:16px} .global-date{font-size:11px}
+}
+/* SMALL PHONES */
+@media (max-width:380px) {
+  .logo{font-size:15px} .theme-badge{display:none} .nav-tab{padding:12px 10px;font-size:11px}
+  .timer-display{font-size:42px} .counter-value,.counter-target{font-size:36px}
+  .program-title{font-size:14px} .btn{padding:12px 16px;font-size:13px}
+}
+@media (max-width:640px) {
+  .theme-badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px;min-width:0">
+    <div class="logo">Hevrat MT</div>
+    <div class="theme-badge">🎵 함께 지어져 가네</div>
+  </div>
+  <div class="topbar-right">
+    <span class="global-date" id="globalDate"></span>
+    <span class="global-timer" id="globalClock">--:--</span>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" data-tab="overview">📋 전체</div>
+  <div class="nav-tab" data-tab="chase">🏃 추격전</div>
+  <div class="nav-tab" data-tab="rec">🎮 레크</div>
+  <div class="nav-tab" data-tab="free">☕ 자유</div>
+  <div class="nav-tab" data-tab="dinner">🍕 저녁</div>
+  <div class="nav-tab" data-tab="closing">🙏 마무리</div>
+  <div class="nav-tab" data-tab="prep">✅ 준비</div>
+</div>
+
+<div class="main">
+
+<!-- OVERVIEW -->
+<div class="section active" id="tab-overview">
+  <div class="program-card expanded">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left">
+        <div class="program-icon" style="background:rgba(232,200,122,0.1)">📋</div>
+        <div><div class="program-title">전체 타임라인</div><div class="program-subtitle">13:00 ~ 20:00</div></div>
+      </div>
+      <span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="checklist">
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>13:00~13:20</strong> — 집결 & 오프닝</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>13:20~14:00</strong> — 🏃 추격전</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>14:00~14:15</strong> — 🔥 팀 빌딩</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>14:15~14:45</strong> — TMI Quiz</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>14:45~15:05</strong> — 찬양 전주 퀴즈</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>15:05~15:20</strong> — TTS 퀴즈 ⭐</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>15:20~15:35</strong> — AI 그림 + 몸으로 말해요</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>15:35~16:00</strong> — 가사 빈칸 + 🎉 추첨</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>16:00~18:00</strong> — ☕ 자유시간</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>18:00~19:30</strong> — 🍕 저녁</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text"><strong>19:30~20:00</strong> — 🙏 마무리</div></div>
+      </div>
+      <div class="raffle-info">
+        <div class="raffle-title">🎫 추첨권 요약</div>
+        <div class="raffle-item"><span>추격전 포획</span><span class="raffle-badge">팀 전원 1장</span></div>
+        <div class="raffle-item"><span>이름 첫 시도</span><span class="raffle-badge">개인 +1장</span></div>
+        <div class="raffle-item"><span>최후의 생존자</span><span class="raffle-badge">3장</span></div>
+        <div class="raffle-item"><span>팀 구호</span><span class="raffle-badge">팀 전원 2장</span></div>
+        <div class="raffle-item"><span>퀴즈 정답</span><span class="raffle-badge">개인 1장</span></div>
+        <div class="raffle-item"><span>몸으로 말해요 팀 정답</span><span class="raffle-badge">팀 전원 1장</span></div>
+        <div class="raffle-item"><span>가사 빈칸</span><span class="raffle-badge">팀 1~3장</span></div>
+        <div class="raffle-item"><span>MC 보너스</span><span class="raffle-badge">재량 1장</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHASE -->
+<div class="section" id="tab-chase">
+  <div class="program-card expanded">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left">
+        <div class="program-icon" style="background:rgba(232,93,93,0.15)">🏃</div>
+        <div><div class="program-title">추격전</div><div class="program-subtitle">13:00 ~ 14:00</div></div>
+      </div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <h3 class="sub-heading">📢 오프닝</h3>
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"환영합니다! 오늘 주제는 <em>'함께 지어져 가네'</em>. 벧전 2:5 '산 돌같이 신령한 집으로 세워지고' — 오늘 하루 함께 지어져 가는 걸 경험해요."</div></div>
+      <div class="mc-block"><div class="mc-label">추첨권 안내</div><div class="mc-text">"오늘 점수 대신 <em>추첨권</em>을 모읍니다! 마지막에 추첨으로 1~3등 시상! 많이 모을수록 확률 UP!"</div></div>
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"첫 번째 프로그램! <em>'흩어진 제자들을 찾아서!'</em> 🏃"</div></div>
+      <div class="secret-link-area"><a class="secret-btn" href="chase_game.html" target="_blank">🔓 추격전 규칙 페이지 열기 (비밀)</a></div>
+      <div class="note-box" style="margin-top:14px;">💡 규칙 & 캐릭터 카드는 비밀 페이지에서. 시작 직전에만 공개!</div>
+      <div class="divider"></div>
+      <h3 class="sub-heading">⏱️ 타이머</h3>
+      <div class="timer-widget">
+        <div class="timer-label">경과 시간 (최대 50분)</div>
+        <div class="timer-display" id="chaseTimer">00:00</div>
+        <div class="timer-buttons">
+          <button class="btn btn-primary" onclick="startChase()">▶ 시작</button>
+          <button class="btn btn-secondary" onclick="pauseChase()">⏸ 정지</button>
+          <button class="btn btn-danger" onclick="resetChase()">↺ 리셋</button>
+        </div>
+      </div>
+      <h3 class="sub-heading">👥 교회 복귀 인원</h3>
+      <div class="counter-widget">
+        <button class="counter-btn" onclick="adj(-1)">−</button>
+        <div>
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:6px"><span class="counter-value" id="cnt">0</span><span class="counter-target">/ 6</span></div>
+          <div class="counter-label">6명 → 게임 종료!</div>
+        </div>
+        <button class="counter-btn" onclick="adj(1)">+</button>
+      </div>
+      <div id="endAlert" style="display:none"><div class="note-box success-note" style="text-align:center;font-size:15px;font-weight:700">🎉 6명 집결! 게임 종료! 단톡방 알림!</div></div>
+      <div class="divider"></div>
+      <h3 class="sub-heading">📱 단톡방 복사용</h3>
+      <div class="mc-block copyable" onclick="cp('🏃 추격전 시작! 타이머 ON ⏱️')"><div class="mc-label">게임 시작</div><div class="mc-text">🏃 추격전 시작! 타이머 ON ⏱️</div></div>
+      <div class="mc-block copyable" onclick="cp('⏱️ 10분 경과! 현재 교회 인원: __명/6명!')"><div class="mc-label">10분</div><div class="mc-text">⏱️ 10분 경과! 교회 인원: __명/6명!</div></div>
+      <div class="mc-block copyable" onclick="cp('⏱️ 20분! 힌트! [제자이름]는 __방향에 🏃')"><div class="mc-label">20분 힌트</div><div class="mc-text">⏱️ 20분! 힌트! [제자이름]는 __방향에 🏃</div></div>
+      <div class="mc-block copyable" onclick="cp('🔔 6명 집결! 게임 종료!!! 교회로!')"><div class="mc-label">종료</div><div class="mc-text">🔔 6명 집결! 게임 종료!!! 교회로!</div></div>
+      <div class="divider"></div>
+      <h3 class="sub-heading">🎤 마무리 멘트</h3>
+      <div class="stage-dir">🎭 톤 전환: 밝음 → 차분 따뜻</div>
+      <div class="mc-block"><div class="mc-label">주제 연결</div><div class="mc-text">"흩어진 제자들이 다시 모였듯이, 우리 Hevrat도 각자의 자리에서 모여 <em>함께 지어져 가는</em> 공동체입니다."</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- RECREATION -->
+<div class="section" id="tab-rec">
+  <div class="program-card">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(232,93,93,0.15)">🔥</div><div><div class="program-title">팀 빌딩</div><div class="program-subtitle">팀 이름 + 구호</div></div></div>
+      <div class="program-time-badge">14:00</div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"두 팀! 5분 안에 <em>팀 이름</em>과 <em>팀 구호</em>(30초 이내) 정해주세요!"</div></div>
+      <div class="timer-widget">
+        <div class="timer-label">팀 빌딩 (5분)</div>
+        <div class="timer-display" id="teamTimer">05:00</div>
+        <div class="timer-buttons">
+          <button class="btn btn-primary" onclick="startTeam()">▶ 시작</button>
+          <button class="btn btn-secondary" onclick="pauseTeam()">⏸</button>
+          <button class="btn btn-danger" onclick="resetTeam()">↺</button>
+        </div>
+      </div>
+      <div class="mc-block"><div class="mc-label">구호 후</div><div class="mc-text">"양 팀 <em>추첨권 2장씩!</em>"</div></div>
+    </div>
+  </div>
+  <div class="program-card">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(93,168,232,0.15)">🧠</div><div><div class="program-title">TMI Quiz (Kahoot!)</div></div></div>
+      <div class="program-time-badge">14:15</div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"<em>TMI 퀴즈!</em> kahoot.it → 핀: <em>[번호]</em>. 정답 → <em>추첨권 1장!</em>"</div></div>
+      <div class="stage-dir">🎭 매 3~4문제마다 TMI 주인공에게 에피소드 물어보기</div>
+      <div class="mc-block"><div class="mc-label">리액션</div><div class="mc-text">"정답은 <em>[이름]</em>! 이거 진짜예요? ㅋㅋ"</div></div>
+    </div>
+  </div>
+  <div class="program-card">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(168,125,232,0.15)">🎵</div><div><div class="program-title">찬양 전주 퀴즈</div></div></div>
+      <div class="program-time-badge">14:45</div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"<em>찬양 전주 퀴즈!</em> 선착순! 곡명 → 1장, 아티스트까지 → 2장!"</div></div>
+      <div class="stage-dir">🎭 1R 클래식 → 2R Hevrat 곡 → 3R 초고난도 3초</div>
+    </div>
+  </div>
+  <div class="program-card">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(232,200,122,0.15)">🗣️</div><div><div class="program-title">TTS 찬양 퀴즈 ⭐</div></div></div>
+      <div class="program-time-badge">15:05</div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"<em>AI가 가사를 읽습니다.</em> 멜로디 없이! 어떤 찬양?"</div></div>
+      <div class="mc-block"><div class="mc-label">감정 라운드</div><div class="mc-text">"같은 가사 <em>화난/슬픈/신난 목소리</em>로! ㅋㅋ 완전 다른 느낌!!"</div></div>
+    </div>
+  </div>
+  <div class="program-card">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(93,232,138,0.15)">🎨</div><div><div class="program-title">AI 그림 + 몸으로 말해요</div></div></div>
+      <div class="program-time-badge">15:20</div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">AI 그림</div><div class="mc-text">"TMI로 AI가 그린 그림! <em>누구?</em>"</div></div>
+      <div class="mc-block"><div class="mc-label">몸으로 말해요</div><div class="mc-text">"<em>몸으로 말해요 찬양 ver!</em> 말 금지! 60초! 팀 정답 → 전원 1장!"</div></div>
+    </div>
+  </div>
+  <div class="program-card">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(232,200,122,0.15)">🎉</div><div><div class="program-title">가사 빈칸 + 추첨 시상식</div></div></div>
+      <div class="program-time-badge">15:35</div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">가사 빈칸</div><div class="mc-text">"<em>가사 빈칸!</em> 3분! 마지막은 <em>'함께 지어져 가네'</em>!"</div></div>
+      <div class="divider"></div>
+      <div class="mc-block"><div class="mc-label">🎉 추첨</div><div class="mc-text">"행운의 주인공은? 3등! <em>[이름]</em>👏 2등! <em>[이름]</em>👏 1등!!! <em>[이름]</em>🎉🎉🎉"</div></div>
+      <div class="stage-dir">🎭 상자 흔들기 퍼포먼스!</div>
+    </div>
+  </div>
+</div>
+
+<!-- FREE -->
+<div class="section" id="tab-free">
+  <div class="program-card expanded">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(93,168,232,0.15)">☕</div><div><div class="program-title">자유시간</div><div class="program-subtitle">16:00~18:00</div></div></div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"18시까지 <em>자유!</em> 보드게임/휴식. 저녁 투표 아직인 분 지금!"</div></div>
+      <p class="body-text">추천: 텔레스트레이션, 다빈치 코드, 보난자, 마피아</p>
+    </div>
+  </div>
+</div>
+
+<!-- DINNER -->
+<div class="section" id="tab-dinner">
+  <div class="program-card expanded">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(232,138,93,0.15)">🍕</div><div><div class="program-title">저녁식사</div><div class="program-subtitle">18:00~19:30</div></div></div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="mc-block"><div class="mc-label">MC 멘트</div><div class="mc-text">"투표 결과! 오늘 메뉴는 <em>[메뉴]</em>!"</div></div>
+      <div class="raffle-info">
+        <div class="raffle-title">💰 1인 비용 참고</div>
+        <div class="raffle-item"><span>치킨</span><span>10,000~13,000</span></div>
+        <div class="raffle-item"><span>피자</span><span>8,000~12,000</span></div>
+        <div class="raffle-item"><span>떡볶이 세트</span><span>7,000~10,000</span></div>
+        <div class="raffle-item"><span>족발/보쌈</span><span>12,000~15,000</span></div>
+        <div class="raffle-item"><span>중식</span><span>7,000~9,000</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSING -->
+<div class="section" id="tab-closing">
+  <div class="program-card expanded">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(168,125,232,0.15)">🙏</div><div><div class="program-title">교제 · 규칙 · 기도</div><div class="program-subtitle">19:30~20:00</div></div></div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <h3 class="sub-heading">🎵 주제곡 (5분)</h3>
+      <div class="mc-block"><div class="mc-label">MC</div><div class="mc-text">"<em>'함께 지어져 가네'</em> 다 같이 부르며 오늘을 되돌아봅시다."</div></div>
+      <div class="divider"></div>
+      <h3 class="sub-heading">📋 규칙 (10분)</h3>
+      <div class="mc-block"><div class="mc-label">MC</div><div class="mc-text">"앞으로 더 잘 '함께 지어져 가려면' 약속이 필요하겠죠?"</div></div>
+      <div class="checklist">
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">연습 일정 & 출석</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">소통 방식</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">찬양 준비</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">기타</div></div>
+      </div>
+      <div class="divider"></div>
+      <h3 class="sub-heading">🤝 기도 (10분)</h3>
+      <div class="mc-block"><div class="mc-label">MC</div><div class="mc-text">"2~3명 소그룹으로 기도제목 나누고 기도."</div></div>
+      <div class="divider"></div>
+      <div class="mc-block"><div class="mc-label">클로징</div><div class="mc-text">"이 모든 순간이 <em>'함께 지어져 가는'</em> 과정이었습니다. <em>'한 사람 한 사람 주님께 나아가 / 함께 지어져 가네'</em> — 앞으로도 함께! 기도해주실 분?"</div></div>
+      <div class="stage-dir">🎭 기도 후 → "MT 마무리! 정리+귀가. Hevrat 화이팅! 🙌"</div>
+    </div>
+  </div>
+</div>
+
+<!-- PREP -->
+<div class="section" id="tab-prep">
+  <div class="program-card expanded">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(93,232,138,0.15)">✅</div><div><div class="program-title">사전 준비</div></div></div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="checklist">
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">Naver Form TMI 수합</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">Kahoot 퀴즈 제작</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">전주 음원 편집</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">TTS 음원 (ElevenLabs)</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">AI 그림 생성</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">몸으로 말해요 카드</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">가사 빈칸 프린트</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">이름표 제작</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">위치공유 테스트</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">블루투스 스피커</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">보드게임</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">저녁 투표</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">규칙 안건 정리</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">핫팩 + 간식</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">보조배터리</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">🎫 추첨권 50~80장 + 펜</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">추첨 상자</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">1~3등 상품</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="program-card">
+    <div class="program-header" onclick="toggleCard(this)">
+      <div class="program-header-left"><div class="program-icon" style="background:rgba(232,93,93,0.15)">🚨</div><div><div class="program-title">비상 대응</div></div></div><span class="expand-icon">▼</span>
+    </div>
+    <div class="program-body">
+      <div class="note-box warning-note"><strong>시간 밀림:</strong> TMI 15→10문제. TTS+AI 합쳐 15분. 자유시간 축소.</div>
+      <div class="note-box warning-note"><strong>분위기:</strong> "30초 팀 셀카!" 또는 간식.</div>
+      <div class="note-box warning-note"><strong>날씨:</strong> 추격전 축소 or 실내 보물찾기.</div>
+      <div class="note-box warning-note"><strong>인원:</strong> 9명↓ → 숨는3명, 종료4명. 12명↑ → 숨는6명, 종료8명.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+  this.classList.add('active');
+  document.getElementById('tab-'+this.dataset.tab).classList.add('active');
+  window.scrollTo(0,0);
+}));
+
+function toggleCard(e){e.closest('.program-card').classList.toggle('expanded')}
+function toggleCheck(e){e.classList.toggle('done');e.querySelector('.check-box').textContent=e.classList.contains('done')?'✓':'';}
+
+function updateClock(){
+  const n=new Date();
+  document.getElementById('globalClock').textContent=n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  document.getElementById('globalDate').textContent=n.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+}
+setInterval(updateClock,1000);updateClock();
+
+let cS=0,cI=null,cR=false;
+function uC(){const e=document.getElementById('chaseTimer');e.textContent=String(Math.floor(cS/60)).padStart(2,'0')+':'+String(cS%60).padStart(2,'0');e.classList.toggle('warning',cS>=2700);}
+function startChase(){if(cR)return;cR=true;cI=setInterval(()=>{cS++;uC();if(cS>=3000){pauseChase();alert('⏰ 50분!');}},1000);}
+function pauseChase(){cR=false;clearInterval(cI);}
+function resetChase(){pauseChase();cS=0;uC();}
+
+let tS=300,tI=null,tR=false;
+function uT(){const e=document.getElementById('teamTimer');e.textContent=String(Math.floor(tS/60)).padStart(2,'0')+':'+String(tS%60).padStart(2,'0');e.classList.toggle('warning',tS<=30);}
+function startTeam(){if(tR)return;tR=true;tI=setInterval(()=>{tS--;uT();if(tS<=0){pauseTeam();alert('⏰ 5분!');}},1000);}
+function pauseTeam(){tR=false;clearInterval(tI);}
+function resetTeam(){pauseTeam();tS=300;uT();}
+
+function adj(d){const e=document.getElementById('cnt');let v=Math.max(0,Math.min(12,parseInt(e.textContent)+d));e.textContent=v;document.getElementById('endAlert').style.display=v>=6?'block':'none';if(v>=6&&d>0&&navigator.vibrate)navigator.vibrate([200,100,200]);}
+
+function cp(t){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(toast).catch(()=>fb(t));}
+  else{fb(t);}
+}
+function fb(t){const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;left:-9999px;opacity:0';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');toast();}catch(e){}document.body.removeChild(a);}
+function toast(){const t=document.createElement('div');t.className='toast';t.textContent='📋 복사!';document.body.appendChild(t);setTimeout(()=>t.remove(),1500);}
+</script>
+</body>
+</html>
