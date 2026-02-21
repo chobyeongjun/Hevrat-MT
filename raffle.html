@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hevrat MT 추첨기</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Outfit:wght@400;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fef9f0;
+      --bg2: #fff7e6;
+      --surface: #fff;
+      --surface2: #fff4db;
+      --border: #f0ddb8;
+      --gold: #d4a017;
+      --gold-light: #f5d56e;
+      --gold-bright: #ffcc00;
+      --red: #e74c3c;
+      --red-light: #ffe0dd;
+      --pink: #ff6b9d;
+      --purple: #a855f7;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --green-light: #dcfce7;
+      --ot: #2874a6;
+      --ot-light: #d6eaf8;
+      --nt: #c0392b;
+      --nt-light: #fadbd8;
+      --text: #2c1810;
+      --text-dim: #9a8574;
+      --text-mid: #6b5444;
+      --shadow: 0 4px 24px rgba(180, 140, 60, 0.10);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(245, 213, 110, 0.25) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 20px 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #5a3e10;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--red), var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 11px 4px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text-dim);
+      transition: all 0.2s;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, var(--red), #ff6b6b);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(231, 76, 60, 0.25);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .total-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #fff8e1, #fff3cc);
+      border: 1.5px solid var(--gold-light);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+
+    .total-bar .label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .total-bar .value {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--gold);
+    }
+
+    .setup-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .setup-card-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-mid);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .participant-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .p-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg2);
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      padding: 8px 10px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .p-row:hover {
+      border-color: var(--gold-light);
+      background: #fff;
+    }
+
+    .p-row.ot {
+      border-left: 3px solid var(--ot);
+    }
+
+    .p-row.nt {
+      border-left: 3px solid var(--nt);
+    }
+
+    .p-row.mc {
+      border-left: 3px solid var(--gold);
+    }
+
+    .p-name {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .p-prob {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--pink);
+      background: rgba(255, 107, 157, 0.1);
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 42px;
+      text-align: center;
+    }
+
+    .ticket-control {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .ticket-btn {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      color: var(--text-mid);
+      background: var(--surface);
+    }
+
+    .ticket-btn:active {
+      background: var(--surface2);
+    }
+
+    .ticket-btn.minus {
+      border-right: 1px solid var(--border);
+    }
+
+    .ticket-btn.plus {
+      border-left: 1px solid var(--border);
+      color: var(--red);
+    }
+
+    .ticket-num {
+      width: 40px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--red);
+      background: transparent;
+      border: none;
+      font-family: inherit;
+      padding: 6px 0;
+      -moz-appearance: textfield;
+    }
+
+    .ticket-num::-webkit-outer-spin-button,
+    .ticket-num::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .ticket-num:focus {
+      outline: none;
+    }
+
+    /* ===== 이벤트 ===== */
+    .event-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .event-item {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    .event-item.used {
+      opacity: 0.55;
+      border-style: dashed;
+    }
+
+    .event-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .event-header:active {
+      background: rgba(245, 213, 110, 0.15);
+    }
+
+    .event-emoji {
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .event-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .event-name {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .event-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 1px;
+    }
+
+    .event-amount {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--red);
+      background: var(--red-light);
+      padding: 3px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .event-arrow {
+      color: var(--text-dim);
+      font-size: 12px;
+      transition: transform 0.3s;
+      flex-shrink: 0;
+    }
+
+    .event-item.open .event-arrow {
+      transform: rotate(180deg);
+    }
+
+    .event-body {
+      display: none;
+      padding: 0 14px 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .event-item.open .event-body {
+      display: block;
+      padding-top: 12px;
+    }
+
+    .event-used-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--green);
+      background: var(--green-light);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .team-select-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .team-btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text-mid);
+      transition: all 0.15s;
+      flex: 1;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .team-btn:active {
+      transform: scale(0.97);
+    }
+
+    .team-btn.ot-btn {
+      border-color: var(--ot);
+      color: var(--ot);
+      background: var(--ot-light);
+    }
+
+    .team-btn.nt-btn {
+      border-color: var(--nt);
+      color: var(--nt);
+      background: var(--nt-light);
+    }
+
+    .team-btn.all-btn {
+      border-color: var(--gold);
+      color: #5a3e10;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold-bright));
+    }
+
+    .team-btn.none-btn {
+      background: var(--surface);
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .check-item:active {
+      transform: scale(0.97);
+    }
+
+    .check-item.checked {
+      border-color: var(--red);
+      background: var(--red-light);
+    }
+
+    .check-item.checked.ot-c {
+      border-color: var(--ot);
+      background: var(--ot-light);
+    }
+
+    .check-item.checked.nt-c {
+      border-color: var(--nt);
+      background: var(--nt-light);
+    }
+
+    .check-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: transparent;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .check-item.checked .check-box {
+      border-color: var(--red);
+      background: var(--red);
+      color: #fff;
+    }
+
+    .check-item.checked.ot-c .check-box {
+      border-color: var(--ot);
+      background: var(--ot);
+    }
+
+    .check-item.checked.nt-c .check-box {
+      border-color: var(--nt);
+      background: var(--nt);
+    }
+
+    .check-label {
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .apply-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--green), #16a34a);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+      transition: transform 0.1s;
+    }
+
+    .apply-btn:active {
+      transform: scale(0.97);
+    }
+
+    .apply-btn:disabled {
+      background: #ccc;
+      color: #999;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* ===== 이력 ===== */
+    .log-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .log-list-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-list-wrap::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .log-list-wrap::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .log-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.6;
+      background: var(--bg2);
+      animation: logSlide 0.3s ease;
+    }
+
+    @keyframes logSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .log-time {
+      font-size: 10px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      padding-top: 2px;
+      min-width: 44px;
+    }
+
+    .log-content {
+      flex: 1;
+      font-weight: 600;
+    }
+
+    .log-amount {
+      font-weight: 800;
+      color: var(--red);
+    }
+
+    .log-amount.minus {
+      color: var(--blue);
+    }
+
+    .log-empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-dim);
+      font-size: 12px;
+    }
+
+    .log-clear-btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text-dim);
+    }
+
+    .log-undo-btn {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--red);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    .log-undo-btn:active {
+      background: var(--red-light);
+    }
+
+    /* ===== 추첨 ===== */
+    .draw-config {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .rank-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .rank-chip {
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .rank-chip:hover {
+      border-color: var(--gold);
+    }
+
+    .rank-chip.active {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold-bright));
+      border-color: var(--gold);
+      color: #5a3e10;
+      box-shadow: 0 2px 8px rgba(212, 160, 23, 0.2);
+    }
+
+    .rank-chip.done {
+      background: var(--red-light);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .slot-frame {
+      background: linear-gradient(180deg, #fff 0%, var(--bg2) 50%, #fff 100%);
+      border: 2.5px solid var(--gold);
+      border-radius: 20px;
+      padding: 16px;
+      position: relative;
+      box-shadow: 0 0 0 4px rgba(212, 160, 23, 0.1), var(--shadow), inset 0 0 40px rgba(245, 213, 110, 0.15);
+      margin-bottom: 14px;
+    }
+
+    .slot-deco {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--gold-light), var(--gold-bright));
+      color: #5a3e10;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 16px;
+      border-radius: 10px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(212, 160, 23, 0.3);
+    }
+
+    .slot-window {
+      height: 220px;
+      overflow: hidden;
+      position: relative;
+      border-radius: 14px;
+      background: #fff;
+      border: 1.5px solid var(--border);
+    }
+
+    .slot-window::before,
+    .slot-window::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 70px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .slot-window::before {
+      top: 0;
+      background: linear-gradient(to bottom, #fff, transparent);
+    }
+
+    .slot-window::after {
+      bottom: 0;
+      background: linear-gradient(to top, #fff, transparent);
+    }
+
+    .slot-center-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      transform: translateY(-50%);
+      height: 68px;
+      border-top: 2.5px solid var(--gold);
+      border-bottom: 2.5px solid var(--gold);
+      background: rgba(245, 213, 110, 0.08);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .slot-reel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      will-change: transform;
+    }
+
+    .slot-item {
+      height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .slot-item.center {
+      color: var(--red);
+      font-size: 38px;
+      text-shadow: 0 0 20px rgba(231, 76, 60, 0.3);
+    }
+
+    .draw-btn {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, var(--red), #ff6b6b, var(--pink));
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-size: 20px;
+      font-weight: 900;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 1px;
+      box-shadow: 0 6px 24px rgba(231, 76, 60, 0.3);
+      transition: transform 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .draw-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.15) 50%, transparent 60%);
+      animation: btnShine 3s infinite;
+    }
+
+    @keyframes btnShine {
+      0% {
+        transform: translateX(-100%)
+      }
+
+      100% {
+        transform: translateX(100%)
+      }
+    }
+
+    .draw-btn:active {
+      transform: scale(0.97);
+    }
+
+    .draw-btn:disabled {
+      background: #ddd;
+      color: #999;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .draw-btn:disabled::before {
+      display: none;
+    }
+
+    .draw-info {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+
+    .winners-section {
+      margin-top: 20px;
+    }
+
+    .winners-header {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-mid);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .winners-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .winner-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+      animation: winPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .winner-card.highlight {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, #fffbeb, #fff8e1);
+      box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1), var(--shadow);
+    }
+
+    @keyframes winPop {
+      0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+      }
+
+      50% {
+        transform: scale(1.03) translateY(-2px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .w-rank {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .w-rank.r1 {
+      background: linear-gradient(135deg, #ffd700, #ffaa00);
+      color: #5a3e10;
+    }
+
+    .w-rank.r2 {
+      background: linear-gradient(135deg, #e0e0e0, #b0b0b0);
+      color: #333;
+    }
+
+    .w-rank.r3 {
+      background: linear-gradient(135deg, #dda15e, #bc6c25);
+      color: #fff;
+    }
+
+    .w-rank.rn {
+      background: var(--bg2);
+      color: var(--gold);
+      border: 1.5px solid var(--border);
+    }
+
+    .w-info {
+      flex: 1;
+    }
+
+    .w-name {
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .w-tickets {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .w-redraw {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: inherit;
+      background: var(--red-light);
+      border: 1px solid rgba(231, 76, 60, 0.2);
+      color: var(--red);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .w-redraw:hover {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-dim);
+      font-size: 13px;
+      background: var(--surface);
+      border: 1.5px dashed var(--border);
+      border-radius: 14px;
+    }
+
+    /* 오버레이 */
+    .dramatic-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    .dramatic-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .dramatic-rank-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 4px;
+      animation: dramaticPulse 1s infinite;
+    }
+
+    @keyframes dramaticPulse {
+
+      0%,
+      100% {
+        opacity: 0.5;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    .dramatic-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 60px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--gold-bright), #fff, var(--gold-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: dramaticReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes dramaticReveal {
+      0% {
+        transform: scale(0.3);
+        opacity: 0;
+      }
+
+      60% {
+        transform: scale(1.15);
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .dramatic-emoji {
+      font-size: 80px;
+      animation: dramaticReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .dramatic-close {
+      margin-top: 10px;
+      padding: 14px 36px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #5a3e10;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      animation: dramaticReveal 0.8s 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      box-shadow: 0 4px 16px rgba(212, 160, 23, 0.3);
+    }
+
+    .confetti-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 150;
+      overflow: hidden;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -20px;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      to {
+        top: 110vh;
+        transform: rotate(1080deg);
+      }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 300;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media(max-width:380px) {
+      .header h1 {
+        font-size: 26px;
+      }
+
+      .dramatic-name {
+        font-size: 40px;
+      }
+
+      .ticket-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-badge">Hevrat MT 2026</div>
+      <h1>🎰 LUCKY DRAW</h1>
+      <div class="header-sub">함께 지어져 가네 · 경품 추첨</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('setup')">👥 참가자</button>
+      <button class="tab" onclick="switchTab('events')">🎫 추첨권</button>
+      <button class="tab" onclick="switchTab('draw')">🎰 추첨</button>
+    </div>
+    <div id="panel-setup" class="panel active">
+      <div class="total-bar">
+        <div class="label">🎫 전체 추첨권</div>
+        <div class="value" id="totalTickets">0</div>
+      </div>
+      <div class="setup-card">
+        <div class="setup-card-title">👥 참가자 & 추첨권</div>
+        <div id="participantList" class="participant-list"></div>
+      </div>
+    </div>
+    <div id="panel-events" class="panel">
+      <div class="total-bar">
+        <div class="label">🎫 전체 추첨권</div>
+        <div class="value" id="totalTickets2">0</div>
+      </div>
+      <div class="setup-card">
+        <div class="setup-card-title">🎫 이벤트별 추첨권 추가</div>
+        <div id="eventList" class="event-grid"></div>
+      </div>
+      <div class="log-card">
+        <div class="setup-card-title">📋 변경 이력 <span id="logCount"
+            style="font-size:11px;color:var(--text-dim);font-weight:600;"></span></div>
+        <div id="logList"></div>
+      </div>
+    </div>
+    <div id="panel-draw" class="panel">
+      <div class="draw-config">
+        <div class="setup-card-title">🏆 등수 선택</div>
+        <div class="rank-selector" id="rankSelector"></div>
+      </div>
+      <div class="slot-area">
+        <div class="slot-frame">
+          <div class="slot-deco" id="slotDeco">READY</div>
+          <div class="slot-window">
+            <div class="slot-center-line"></div>
+            <div class="slot-reel" id="slotReel"></div>
+          </div>
+        </div>
+        <button class="draw-btn" id="drawBtn" onclick="startDraw()">🎰 추첨 시작!</button>
+        <div class="draw-info" id="drawInfo"></div>
+      </div>
+      <div class="winners-section">
+        <div class="winners-header">🏆 당첨 결과</div>
+        <div id="winnersList"></div>
+      </div>
+    </div>
+  </div>
+  <div class="dramatic-overlay" id="dramaticOverlay">
+    <div class="dramatic-emoji" id="dramaticEmoji"></div>
+    <div class="dramatic-rank-label" id="dramaticRankLabel"></div>
+    <div class="dramatic-name" id="dramaticName"></div>
+    <button class="dramatic-close" onclick="closeDramatic()">🎉 확인!</button>
+  </div>
+  <div class="confetti-container" id="confettiContainer"></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== 팀 & 참가자 =====
+    const TEAMS = {
+      ot: { name: '구약팀', emoji: '📜', members: ['이지연', '유찬미', '전세현', '윤지환', '강민지', '조희주 목사님'] },
+      nt: { name: '신약팀', emoji: '✝️', members: ['최강민', '지서현', '심민규', '심민경', '김준섭', '정경진'] },
+      mc: { name: 'MC', emoji: '🎙️', members: ['조병준'] }
+    };
+    const participants = [];
+    for (const [tid, t] of Object.entries(TEAMS))
+      t.members.forEach(name => participants.push({ name, tickets: 1, team: tid }));
+
+    function idxByTeam(tid) { return participants.map((_, i) => i).filter(i => participants[i].team === tid); }
+
+    // ===== 이벤트 정의 =====
+    const events = [
+      { id: 'chase', emoji: '🏃', name: '가장 먼저 포획을 마친 추격자', desc: '해당 추격자', amount: 2, scope: 'individual', multi: true },
+      { id: 'firstname', emoji: '💡', name: '추격자를 속인 사람', desc: '잘못 터치 당한 사람', amount: 1, scope: 'individual', multi: true },
+      { id: 'survivor', emoji: '🏆', name: '최후의 생존자', desc: '끝까지 살아남은 1인', amount: 2, scope: 'individual', multi: false },
+      { id: 'chant', emoji: '📣', name: '재밌는 팀 구호', desc: '선정된 팀 전원', amount: 2, scope: 'team', multi: false },
+      { id: 'rec1_1st', emoji: '🧠', name: '레크1 우승 (1등)', desc: '개인 우승자', amount: 3, scope: 'individual', multi: false },
+      { id: 'rec1_2nd', emoji: '🎭', name: '레크1 준우승 (2등)', desc: '개인 준우승자', amount: 2, scope: 'individual', multi: false },
+      { id: 'rec1_3rd', emoji: '🎫', name: '레크1 3등', desc: '개인 3등', amount: 1, scope: 'individual', multi: false },
+      { id: 'rec2', emoji: '🎵', name: '레크2 우승', desc: '우승팀 전원', amount: 2, scope: 'team', multi: false },
+      { id: 'rec3', emoji: '🗣️', name: '레크3 우승', desc: '우승팀 전원', amount: 2, scope: 'team', multi: false },
+      { id: 'mcbonus', emoji: '⭐', name: 'MC 보너스', desc: 'MC 재량 지급', amount: 1, scope: 'individual', multi: true },
+    ];
+
+    let results = {}, totalRanks = 3, selectedRank = null, isDrawing = false;
+    let history = [], eventUsed = {}, openEventId = null, eventChecked = {};
+
+    function init() { renderParticipants(); updateTotal(); buildRankSelector(); renderWinners(); buildReel(); updateDrawBtn(); renderEvents(); renderLog(); }
+
+    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._tid); t._tid = setTimeout(() => t.classList.remove('show'), 2000); }
+
+    // ===== 참가자 탭 =====
+    function renderParticipants() {
+      const list = document.getElementById('participantList');
+      const total = participants.reduce((s, p) => s + p.tickets, 0) || 1;
+      let html = '';
+      for (const [tid, t] of Object.entries(TEAMS)) {
+        const members = participants.filter(p => p.team === tid);
+        html += `<div style="margin-top:${tid === 'ot' ? '0' : '10'}px;">
+      <div style="font-size:11px;font-weight:800;color:var(--text-dim);margin-bottom:4px;display:flex;align-items:center;gap:4px;">
+        ${t.emoji} ${t.name} (${members.length}명)
+        <span style="font-size:10px;font-weight:600;color:var(--gold);margin-left:auto;">합계 ${members.reduce((s, p) => s + p.tickets, 0)}장</span>
+      </div>`;
+        members.forEach(p => {
+          const i = participants.indexOf(p);
+          const prob = ((p.tickets / total) * 100).toFixed(1);
+          html += `<div class="p-row ${tid}"><div class="p-name">${p.name}</div><div class="p-prob">${prob}%</div>
+        <div class="ticket-control"><button class="ticket-btn minus" onclick="chg(${i},-1)">−</button>
+        <input class="ticket-num" type="number" min="0" max="99" value="${p.tickets}" onchange="set(${i},this.value)">
+        <button class="ticket-btn plus" onclick="chg(${i},1)">+</button></div></div>`;
+        });
+        html += '</div>';
+      }
+      list.innerHTML = html;
+    }
+    function chg(i, d) { const o = participants[i].tickets; participants[i].tickets = Math.max(0, participants[i].tickets + d); if (participants[i].tickets !== o) addLog('✏️ 수동', [participants[i].name], participants[i].tickets - o); renderParticipants(); updateTotal(); }
+    function set(i, v) { const o = participants[i].tickets; participants[i].tickets = Math.max(0, parseInt(v) || 0); if (participants[i].tickets !== o) addLog('✏️ 수동', [participants[i].name], participants[i].tickets - o); renderParticipants(); updateTotal(); }
+    function updateTotal() { const t = participants.reduce((s, p) => s + p.tickets, 0); document.getElementById('totalTickets').textContent = t; const t2 = document.getElementById('totalTickets2'); if (t2) t2.textContent = t; }
+
+    // ===== 이벤트 탭 =====
+    function renderEvents() {
+      document.getElementById('eventList').innerHTML = events.map(ev => {
+        const used = eventUsed[ev.id] && !ev.multi, isOpen = openEventId === ev.id;
+        return `<div class="event-item ${isOpen ? 'open' : ''} ${used ? 'used' : ''}">
+      <div class="event-header" onclick="toggleEvent('${ev.id}')">
+        <div class="event-emoji">${ev.emoji}</div>
+        <div class="event-info"><div class="event-name">${ev.name} ${used ? '<span class="event-used-badge">✓ 완료</span>' : ''}</div><div class="event-desc">${ev.desc}</div></div>
+        <div class="event-amount">${ev.scope === 'team' ? '팀' : '개인'} +${ev.amount}장</div>
+        <div class="event-arrow">▼</div>
+      </div>
+      <div class="event-body">${buildEventBody(ev)}</div>
+    </div>`;
+      }).join('');
+    }
+
+    function buildEventBody(ev) {
+      if (!eventChecked[ev.id]) eventChecked[ev.id] = new Set();
+      const ck = eventChecked[ev.id];
+      let html = `<div class="team-select-row">
+    <button class="team-btn ot-btn" onclick="selTeam('${ev.id}','ot')">📜 구약팀</button>
+    <button class="team-btn nt-btn" onclick="selTeam('${ev.id}','nt')">✝️ 신약팀</button>
+    <button class="team-btn all-btn" onclick="selAll('${ev.id}')">전체</button>
+    <button class="team-btn none-btn" onclick="selNone('${ev.id}')">해제</button>
+  </div><div class="check-grid">`;
+      for (const [tid] of Object.entries(TEAMS)) {
+        idxByTeam(tid).forEach(i => {
+          const c = ck.has(i), tc = c ? (tid === 'ot' ? 'ot-c' : tid === 'nt' ? 'nt-c' : '') : '';
+          html += `<div class="check-item ${c ? 'checked' : ''} ${tc}" onclick="togCheck('${ev.id}',${i})">
+        <div class="check-box">${c ? '✓' : ''}</div><div class="check-label">${participants[i].name}</div></div>`;
+        });
+      }
+      html += `</div><button class="apply-btn" onclick="applyEv('${ev.id}')" ${ck.size === 0 ? 'disabled' : ''}>${ev.emoji} ${ck.size}명에게 +${ev.amount}장 지급</button>`;
+      return html;
+    }
+
+    function toggleEvent(id) { openEventId = openEventId === id ? null : id; renderEvents(); }
+    function togCheck(eid, i) { if (!eventChecked[eid]) eventChecked[eid] = new Set(); eventChecked[eid].has(i) ? eventChecked[eid].delete(i) : eventChecked[eid].add(i); renderEvents(); }
+    function selTeam(eid, tid) {
+      if (!eventChecked[eid]) eventChecked[eid] = new Set();
+      const ii = idxByTeam(tid), allIn = ii.every(i => eventChecked[eid].has(i));
+      ii.forEach(i => allIn ? eventChecked[eid].delete(i) : eventChecked[eid].add(i));
+      renderEvents();
+    }
+    function selAll(eid) { eventChecked[eid] = new Set(participants.map((_, i) => i)); renderEvents(); }
+    function selNone(eid) { eventChecked[eid] = new Set(); renderEvents(); }
+
+    function applyEv(eid) {
+      const ev = events.find(e => e.id === eid), ck = eventChecked[eid];
+      if (!ck || ck.size === 0) return;
+      const names = [];
+      ck.forEach(i => { participants[i].tickets += ev.amount; names.push(participants[i].name); });
+      addLog(ev.emoji + ' ' + ev.name, names, ev.amount);
+      eventUsed[eid] = true; eventChecked[eid] = new Set(); openEventId = null;
+      renderParticipants(); updateTotal(); renderEvents(); renderLog();
+      showToast(`${ev.emoji} ${names.length}명에게 +${ev.amount}장!`);
+    }
+
+    // ===== 이력 =====
+    function addLog(evName, names, amount) {
+      const now = new Date(), time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      history.unshift({ time, evName, names: [...names], amount, id: Date.now() });
+      renderLog();
+    }
+    function renderLog() {
+      const list = document.getElementById('logList'), cnt = document.getElementById('logCount');
+      cnt.textContent = history.length ? `(${history.length}건)` : '';
+      if (!history.length) { list.innerHTML = '<div class="log-empty">아직 이력이 없어요</div>'; return; }
+      list.innerHTML = `<div class="log-list-wrap">${history.map((h, i) => {
+        const ns = h.names.length > 3 ? h.names.slice(0, 3).join(', ') + ` 외 ${h.names.length - 3}명` : h.names.join(', ');
+        return `<div class="log-entry"><div class="log-time">${h.time}</div>
+      <div class="log-content"><span>${h.evName}</span><br><span style="font-size:11px;color:var(--text-dim);font-weight:600;">${ns}</span>
+      <span class="log-amount ${h.amount > 0 ? '' : 'minus'}">${h.amount > 0 ? '+' : ''}${h.amount}장</span></div>
+      <button class="log-undo-btn" onclick="undoLog(${i})">↩</button></div>`;
+      }).join('')}</div><div style="text-align:center;margin-top:10px;"><button class="log-clear-btn" onclick="clearLog()">🗑️ 이력 삭제</button></div>`;
+    }
+    function undoLog(idx) {
+      const h = history[idx]; if (!h) return;
+      if (!confirm(`"${h.evName}" 되돌리기?`)) return;
+      h.names.forEach(n => { const p = participants.find(pp => pp.name === n); if (p) p.tickets = Math.max(0, p.tickets - h.amount); });
+      history.splice(idx, 1); renderParticipants(); updateTotal(); renderLog(); renderEvents(); showToast('↩ 되돌리기 완료!');
+    }
+    function clearLog() { if (!confirm('이력 전체 삭제?')) return; history = []; renderLog(); }
+
+    // ===== 탭 전환 =====
+    function switchTab(t) {
+      document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', (t === 'setup' && i === 0) || (t === 'events' && i === 1) || (t === 'draw' && i === 2)));
+      ['setup', 'events', 'draw'].forEach(p => document.getElementById('panel-' + p).classList.toggle('active', t === p));
+      if (t === 'draw') { buildRankSelector(); renderWinners(); buildReel(); updateDrawBtn(); }
+      if (t === 'events') { updateTotal(); renderEvents(); renderLog(); }
+      if (t === 'setup') { renderParticipants(); updateTotal(); }
+    }
+
+    // ===== 추첨 =====
+    function buildRankSelector() {
+      const sel = document.getElementById('rankSelector');
+      let h = `<div style="display:flex;align-items:center;gap:6px;width:100%;margin-bottom:8px;">
+    <span style="font-size:12px;color:var(--text-dim);">총</span>
+    <div class="ticket-control"><button class="ticket-btn minus" onclick="chgR(-1)">−</button>
+    <input class="ticket-num" type="number" min="1" max="13" value="${totalRanks}" onchange="setR(this.value)" style="width:32px;">
+    <button class="ticket-btn plus" onclick="chgR(1)">+</button></div>
+    <span style="font-size:12px;color:var(--text-dim);">명 뽑기</span>
+  </div><div style="display:flex;flex-wrap:wrap;gap:6px;">`;
+      for (let r = totalRanks; r >= 1; r--) {
+        const em = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '🎁';
+        h += `<button class="rank-chip ${selectedRank === r ? 'active' : ''} ${results[r] ? 'done' : ''}" onclick="selRank(${r})">${em} ${r}등${results[r] ? ' ✓' : ''}</button>`;
+      }
+      h += '</div>'; sel.innerHTML = h;
+    }
+    function chgR(d) { totalRanks = Math.max(1, Math.min(13, totalRanks + d)); if (selectedRank > totalRanks) selectedRank = null; buildRankSelector(); updateDrawBtn(); }
+    function setR(v) { totalRanks = Math.max(1, Math.min(13, parseInt(v) || 1)); if (selectedRank > totalRanks) selectedRank = null; buildRankSelector(); updateDrawBtn(); }
+    function selRank(r) { selectedRank = r; buildRankSelector(); updateDrawBtn(); buildReel(); const em = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '🎁'; document.getElementById('slotDeco').textContent = `${em} ${r}등 추첨`; }
+
+    function updateDrawBtn() {
+      const btn = document.getElementById('drawBtn'), info = document.getElementById('drawInfo'), el = getEligible();
+      if (!selectedRank) { btn.disabled = true; btn.textContent = '등수를 선택하세요'; info.textContent = ''; return; }
+      if (!el.length) { btn.disabled = true; btn.textContent = '추첨 대상이 없습니다'; info.textContent = '추첨권 0장 = 제외'; return; }
+      btn.disabled = false; const re = !!results[selectedRank];
+      btn.textContent = re ? `🔄 ${selectedRank}등 다시 뽑기!` : `🎰 ${selectedRank}등 추첨!`;
+      info.textContent = `참가자 ${el.length}명 · 추첨권 ${el.reduce((s, p) => s + p.tickets, 0)}장`;
+    }
+    function getEligible() { return participants.filter(p => p.tickets > 0); }
+
+    function buildReel() {
+      const reel = document.getElementById('slotReel'), el = getEligible();
+      if (!el.length) { reel.innerHTML = '<div class="slot-item" style="height:220px;opacity:0.3;">대상 없음</div>'; return; }
+      let pool = []; el.forEach(p => { for (let i = 0; i < p.tickets; i++)pool.push(p.name); });
+      while (pool.length < 30) pool = pool.concat(pool);
+      for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[pool[i], pool[j]] = [pool[j], pool[i]]; }
+      const c = [pool[0]]; for (let i = 1; i < pool.length; i++)if (pool[i] !== c[c.length - 1]) c.push(pool[i]);
+      reel.innerHTML = c.map(n => `<div class="slot-item">${n}</div>`).join('');
+      reel.style.transition = 'none'; reel.style.transform = `translateY(${-(Math.floor(c.length / 2) * 65) + 78}px)`;
+    }
+
+    function startDraw() {
+      if (isDrawing || !selectedRank) return; const el = getEligible(); if (!el.length) return;
+      isDrawing = true; const btn = document.getElementById('drawBtn'); btn.disabled = true;
+      let pool = []; el.forEach(p => { for (let i = 0; i < p.tickets; i++)pool.push(p.name); });
+      const winnerName = pool[Math.floor(Math.random() * pool.length)];
+      btn.textContent = '🥁 두구두구두구...';
+      const extraDelay = selectedRank <= 2 ? 800 : selectedRank <= 3 ? 400 : 0;
+      animateSlot(winnerName, () => {
+        setTimeout(() => {
+          const w = participants.find(p => p.name === winnerName);
+          results[selectedRank] = { name: winnerName, tickets: w ? w.tickets : 0 };
+          buildRankSelector(); renderWinners(); updateDrawBtn(); showDramatic(selectedRank, winnerName); shootConfetti(); isDrawing = false;
+        }, extraDelay);
+      });
+    }
+
+    function animateSlot(winner, cb) {
+      const reel = document.getElementById('slotReel'), el = getEligible();
+      let items = []; const spins = 50 + Math.floor(Math.random() * 20);
+      for (let i = 0; i < spins; i++)items.push(el[Math.floor(Math.random() * el.length)].name);
+      items.push(winner);
+      reel.innerHTML = items.map(n => `<div class="slot-item">${n}</div>`).join('');
+      reel.style.transition = 'none'; reel.style.transform = 'translateY(82px)';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const fy = -((items.length - 1) * 65) + 78, dur = 3.5 + Math.random() * 1.5;
+          reel.style.transition = `transform ${dur}s cubic-bezier(0.12,0.8,0.25,1)`;
+          reel.style.transform = `translateY(${fy}px)`;
+          reel.addEventListener('transitionend', function h() { reel.removeEventListener('transitionend', h); reel.querySelectorAll('.slot-item')[items.length - 1].classList.add('center'); setTimeout(cb, 300); });
+        });
+      });
+    }
+
+    function showDramatic(rank, name) {
+      const ov = document.getElementById('dramaticOverlay'), em = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🎁', big = rank === 1 ? '👑' : rank === 2 ? '🌟' : rank === 3 ? '✨' : '🎉';
+      document.getElementById('dramaticEmoji').textContent = big; document.getElementById('dramaticRankLabel').textContent = `${em} ${rank}등`; document.getElementById('dramaticName').textContent = name; ov.classList.add('show');
+    }
+    function closeDramatic() { document.getElementById('dramaticOverlay').classList.remove('show'); }
+
+    function renderWinners() {
+      const list = document.getElementById('winnersList'), ranks = Object.keys(results).map(Number).sort((a, b) => a - b);
+      if (!ranks.length) { list.innerHTML = '<div class="empty-state">등수를 선택하고 추첨하세요 🎰</div>'; return; }
+      list.innerHTML = ranks.map(r => {
+        const w = results[r], em = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '🎁', rc = r === 1 ? 'r1' : r === 2 ? 'r2' : r === 3 ? 'r3' : 'rn';
+        return `<div class="winner-card ${selectedRank === r ? 'highlight' : ''}"><div class="w-rank ${rc}">${em}</div>
+      <div class="w-info"><div class="w-name">${w.name}</div><div class="w-tickets">${r}등 · 추첨권 ${w.tickets}장</div></div>
+      <button class="w-redraw" onclick="redraw(${r})">다시 뽑기</button></div>`;
+      }).join('');
+    }
+
+    function redraw(rank) {
+      if (isDrawing) return; if (!confirm(`${rank}등을 다시 뽑으시겠습니까?`)) return;
+      delete results[rank]; selectedRank = rank; buildRankSelector(); renderWinners(); buildReel(); updateDrawBtn();
+      document.getElementById('slotDeco').textContent = `${rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🎁'} ${rank}등 재추첨`;
+    }
+
+    function shootConfetti() {
+      const c = document.getElementById('confettiContainer'), cols = ['#ffd700', '#ff6b9d', '#a855f7', '#3b82f6', '#e74c3c', '#fff', '#ff9500', '#34d399'];
+      for (let i = 0; i < 80; i++) { const el = document.createElement('div'); el.className = 'confetti'; el.style.left = Math.random() * 100 + '%'; el.style.background = cols[Math.floor(Math.random() * cols.length)]; el.style.animationDuration = (2 + Math.random() * 3) + 's'; el.style.animationDelay = (Math.random() * 0.8) + 's'; el.style.width = (6 + Math.random() * 8) + 'px'; el.style.height = (8 + Math.random() * 10) + 'px'; el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px'; c.appendChild(el); }
+      setTimeout(() => { c.innerHTML = ''; }, 5000);
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
