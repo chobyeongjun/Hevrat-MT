@@ -1305,15 +1305,19 @@
     <button class="team-btn nt-btn" onclick="selTeam('${ev.id}','nt')">✝️ 신약팀</button>
     <button class="team-btn all-btn" onclick="selAll('${ev.id}')">전체</button>
     <button class="team-btn none-btn" onclick="selNone('${ev.id}')">해제</button>
-  </div><div class="check-grid">`;
-      for (const [tid] of Object.entries(TEAMS)) {
-        idxByTeam(tid).forEach(i => {
+  </div>`;
+      // 팀별 그룹 분리
+      for (const [tid, t] of Object.entries(TEAMS)) {
+        const idxs = idxByTeam(tid);
+        html += `<div style="font-size:10px;font-weight:700;color:var(--text-dim);margin:${tid === 'ot' ? '0' : '8px'} 0 4px;letter-spacing:1px;">${t.emoji} ${t.name}</div><div class="check-grid">`;
+        idxs.forEach(i => {
           const c = ck.has(i), tc = c ? (tid === 'ot' ? 'ot-c' : tid === 'nt' ? 'nt-c' : '') : '';
           html += `<div class="check-item ${c ? 'checked' : ''} ${tc}" onclick="togCheck('${ev.id}',${i})">
         <div class="check-box">${c ? '✓' : ''}</div><div class="check-label">${participants[i].name}</div></div>`;
         });
+        html += `</div>`;
       }
-      html += `</div><button class="apply-btn" onclick="applyEv('${ev.id}')" ${ck.size === 0 ? 'disabled' : ''}>${ev.emoji} ${ck.size}명에게 +${ev.amount}장 지급</button>`;
+      html += `<button class="apply-btn" style="margin-top:12px;" onclick="applyEv('${ev.id}')" ${ck.size === 0 ? 'disabled' : ''}>${ev.emoji} ${ck.size}명에게 +${ev.amount}장 지급</button>`;
       return html;
     }
 
@@ -1321,7 +1325,8 @@
     function togCheck(eid, i) { if (!eventChecked[eid]) eventChecked[eid] = new Set(); eventChecked[eid].has(i) ? eventChecked[eid].delete(i) : eventChecked[eid].add(i); renderEvents(); }
     function selTeam(eid, tid) {
       if (!eventChecked[eid]) eventChecked[eid] = new Set();
-      const ii = idxByTeam(tid), allIn = ii.every(i => eventChecked[eid].has(i));
+      const ii = idxByTeam(tid).filter(i => participants[i].team !== 'mc');
+      const allIn = ii.every(i => eventChecked[eid].has(i));
       ii.forEach(i => allIn ? eventChecked[eid].delete(i) : eventChecked[eid].add(i));
       renderEvents();
     }
@@ -1426,6 +1431,9 @@
         setTimeout(() => {
           const w = participants.find(p => p.name === winnerName);
           results[selectedRank] = { name: winnerName, tickets: w ? w.tickets : 0 };
+          // 당첨 시 1장 차감 (남은 표로 계속 참여 가능)
+          if (w && w.tickets > 0) { w.tickets--; }
+          renderParticipants(); updateTotal();
           buildRankSelector(); renderWinners(); updateDrawBtn(); showDramatic(selectedRank, winnerName); shootConfetti(); isDrawing = false;
         }, extraDelay);
       });
@@ -1467,7 +1475,11 @@
 
     function redraw(rank) {
       if (isDrawing) return; if (!confirm(`${rank}등을 다시 뽑으시겠습니까?`)) return;
-      delete results[rank]; selectedRank = rank; buildRankSelector(); renderWinners(); buildReel(); updateDrawBtn();
+      // 이전 당첨자에게 차감했던 1장 복원
+      const prev = results[rank];
+      if (prev) { const p = participants.find(pp => pp.name === prev.name); if (p) p.tickets++; }
+      delete results[rank]; selectedRank = rank;
+      renderParticipants(); updateTotal(); buildRankSelector(); renderWinners(); buildReel(); updateDrawBtn();
       document.getElementById('slotDeco').textContent = `${rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🎁'} ${rank}등 재추첨`;
     }
 
